@@ -27,21 +27,40 @@ RATING_STARS_DICT = {'it was amazing': 5,
                      '': None}
 
 
-def switch_reviews_mode(driver, book_id, sort_order, rating=None):
+def switch_reviews_mode(driver, url):
     """
-    Copyright (C) 2019 by Omar Einea: https://github.com/OmarEinea/GoodReadsScraper
-    Licensed under GPL v3.0: https://github.com/OmarEinea/GoodReadsScraper/blob/master/LICENSE.md
-    Accessed on 2019-12-01.
+    From the book page, go to the reviews page.
+    On selenium, you cannot go direct to the reviews page. (Are you lost?)
     """
-    edition_reviews=False
-    rating = str(rating) if rating else ''
-    driver.execute_script(
-        'document.getElementById("reviews").insertAdjacentHTML("beforeend", \'<a data-remote="true" rel="nofollow"'
-        f'class="actionLinkLite loadingLink" data-keep-on-success="true" id="switch{rating}{sort_order}"' +
-        f'href="/book/reviews/{book_id}?rating={rating}&sort={sort_order}' +
-        ('&edition_reviews=true' if edition_reviews else '') + '">Switch Mode</a>\');' +
-        f'document.getElementById("switch{rating}{sort_order}").click()'
-    )
+    try:
+        # the first load always has the pop up to register
+        driver.get(url)
+        time.sleep(1)
+
+        driver.find_element(By.LINK_TEXT, 'See all reviews and ratings')
+    except NoSuchElementException:
+        print(f'🚨 NoSuchElementException (Likely a pop-up)🚨\n🔄 Refreshing Goodreads site..')
+
+        driver.get(url)
+        SCROLL_PAUSE_TIME = 1
+
+        # scroll to at the end of the reviews to get the 'see all reviews' button
+        i = 0
+        while (i <= 8):
+            # Scroll down to bottom
+            if i == 8:
+                y = (i * 1750) - 1000
+            else:
+                y = i * 1750
+            print(f'{i}: {y}')
+            driver.execute_script(f"window.scrollTo(0, {y});")
+
+            # Wait to load page
+            time.sleep(SCROLL_PAUSE_TIME)
+            i += 1
+
+        driver.find_element(By.LINK_TEXT, 'See all reviews and ratings').click()
+
     return True
 
 
@@ -155,7 +174,7 @@ def get_reviews_first_ten_pages(driver, book_id, sort_order, rating):
         time.sleep(4)
 
         # Refresh the reviews so that we account for a non-default sort order or a changed rating filter
-        switch_reviews_mode(driver, book_id, sort_order, rating=rating)
+        switch_reviews_mode(driver, url)
         time.sleep(2)
 
         if sort_order == 'newest' or sort_order == 'oldest':
