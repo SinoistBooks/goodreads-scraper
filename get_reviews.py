@@ -180,8 +180,6 @@ def main():
     parser.add_argument('--output_dir', type=str)
     parser.add_argument('--browser', type=str,
                         help="choose a browser", default="chrome")
-    parser.add_argument('--rating_filter', default=None, type=int)
-    parser.add_argument('--sort_order', default='default', type=str)
 
     args = parser.parse_args()
 
