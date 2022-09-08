@@ -1,3 +1,5 @@
+_dionizh: This repo is forked from and built on top of maria-antoniak's goodreads-scraper. I modified a couple of files to work with GR new layout and added a couple more files. I did not submit a PR to the original repo, as I worked on things that suit my purposes only._
+
 # Goodreads Scraper
 
 These Python scripts can be used to collect book reviews and metadata from Goodreads.
@@ -6,7 +8,7 @@ We were motivated to develop this Goodreads Scraper because the Goodreads API is
 
 We used this Goodreads Scraper to collect data for our article, ["The Goodreads ‘Classics’: A Computational Study of Readers, Amazon, and Crowdsourced Amateur Criticism."](https://post45.org/2021/04/the-goodreads-classics-a-computational-study-of-readers-amazon-and-crowdsourced-amateur-criticism) To allow others to reproduce (approximately) the data we used in the essay, we include a file with 144 Goodreads book IDs for the 144 classics that we analyzed (`goodreads_classics.txt`). You can use these IDs to collect corresponding reviews and metadata with the Goodreads Scraper as described below.
 
-*Note: Updates to the Goodreads website may break this code. We don't guarantee that the scraper will continue to work in the future, but feel free to post an issue if you run into a problem.*
+_Note: Updates to the Goodreads website may break this code. We don't guarantee that the scraper will continue to work in the future, but feel free to post an issue if you run into a problem._
 
 <br><br>
 
@@ -15,6 +17,7 @@ We used this Goodreads Scraper to collect data for our article, ["The Goodreads 
 To run these scripts, you will need [Python 3](https://www.anaconda.com/distribution/).
 
 You will also need the following Python libraries:
+
 - [Beautiful Soup 4](https://www.crummy.com/software/BeautifulSoup/bs4/doc/#installing-beautiful-soup)
 - [Selenium](https://selenium-python.readthedocs.io/installation.html)
 - [lxml](https://www.crummy.com/software/BeautifulSoup/bs4/doc/#installing-a-parser)
@@ -34,20 +37,20 @@ We recommend running these Python scripts from the command line, as the usage in
 
 # Scraping Goodreads Book Metadata
 
-You can use the Python script `get_books.py` to collect metadata about books on Goodreads, such as the total number of Goodreads reviews and ratings, average Goodreads rating, and most common Goodreads "shelves" for each book. 
+You can use the Python script `get_books.py` to collect metadata about books on Goodreads, such as the total number of Goodreads reviews and ratings, average Goodreads rating, and most common Goodreads "shelves" for each book.
 
 ## get_books.py
 
 ### Input
 
-This script takes as input a list of book IDs, stored in a plain text file with one book ID per line. Book IDs are unique to Goodreads and can be found at the end of a book's URL. For example, the book ID for *Little Women* ([https://www.goodreads.com/book/show/1934.Little_Women](https://www.goodreads.com/book/show/1934.Little_Women)) is `1934.Little_Women`. 
+This script takes as input a list of book IDs, stored in a plain text file with one book ID per line. Book IDs are unique to Goodreads and can be found at the end of a book's URL. For example, the book ID for _Little Women_ ([https://www.goodreads.com/book/show/1934.Little_Women](https://www.goodreads.com/book/show/1934.Little_Women)) is `1934.Little_Women`.
 
 ### Output
 
 This script outputs a JSON file for each book with the following information:
 
 - book ID and title
-- book ID 
+- book ID
 - book title
 - ISBN
 - ISBN13
@@ -83,11 +86,12 @@ You can use the Python script `get_reviews.py` to collect reviews and review met
 
 ### Input
 
-This script takes as input a list of book IDs, stored in a plain text file with one book ID per line. Book IDs are unique to Goodreads and can be found at the end of a book's URL. For example, the book ID for *Little Women* ([https://www.goodreads.com/book/show/1934.Little_Women](https://www.goodreads.com/book/show/1934.Little_Women)) is `1934.Little_Women`. 
+This script takes as input a list of book IDs, stored in a plain text file with one book ID per line. Book IDs are unique to Goodreads and can be found at the end of a book's URL. For example, the book ID for _Little Women_ ([https://www.goodreads.com/book/show/1934.Little_Women](https://www.goodreads.com/book/show/1934.Little_Women)) is `1934.Little_Women`.
 
 ### Output
 
 This script outputs a JSON file for each book with the following information:
+
 - book ID and title
 - book ID
 - book title
@@ -100,21 +104,21 @@ This script outputs a JSON file for each book with the following information:
 - number of likes the review received from other users
 - shelves to which the reviewer added the book
 
-This script also outputs an aggregated JSON file with information about all the reviews for all the books that have been scraped.  To output an aggregated CSV file in addition to a JSON file, use the flag `--format CSV`.
+This script also outputs an aggregated JSON file with information about all the reviews for all the books that have been scraped. To output an aggregated CSV file in addition to a JSON file, use the flag `--format CSV`.
 
 Goodreads only allows the first 10 pages of reviews to be shown for each book. There are 30 reviews per page, so you should expect a maximum of 300 reviews per book. By default, the reviews are sorted by their popularity. They can also be sorted chronologically to show either the newest or oldest reviews.
 
-We also select a filter to only show English language reviews. 
+We also select a filter to only show English language reviews.
 
 ### Usage
 
-`python get_reviews.py --book_ids_path your_file_path --output_directory_path your_directory_path --browser your_browser_name --sort_order your_sort_order --rating_filter your_rating_filter  --format JSON (default) or CSV`
+`python get_reviews.py --book_ids_path your_file_path --output_directory_path your_directory_path --browser your_browser_name --sort_order your_sort_order --rating_filter your_rating_filter --format JSON (default) or CSV`
 
 `sort_order` can be set to `default`,`newest` or `oldest`.
 
 `rating_filter` can be omitted or set to any number in the range 1-5.
 
-`browser` can be set to `chrome` or `firefox`. 
+`browser` can be set to `chrome` or `firefox`.
 
 `format` can be set to `JSON` (default) or `CSV`.
 
@@ -145,4 +149,3 @@ If you use this scraper as part of an academic publication, you can credit us by
 Walsh, Melanie, and Maria Antoniak. ["The Goodreads ‘Classics’: A Computational Study of Readers, Amazon, and Crowdsourced Amateur Criticism."](https://maria-antoniak.github.io/resources/2021_ca_classics.pdf) Journal of Cultural Analytics 4 (2021): 243-287.
 
 We used a function written by [Omar Einea](https://github.com/OmarEinea/GoodReadsScraper), licensed under [GPL v3.0](https://github.com/OmarEinea/GoodReadsScraper/blob/master/LICENSE.md), for the Goodreads review sorting.
-
