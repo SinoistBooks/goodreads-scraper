@@ -38,7 +38,7 @@ def switch_reviews_mode(driver, url):
                 y = (i * 1750) - 1000
             else:
                 y = i * 1750
-            print(f'{i}: {y}')
+            print(f'Scroll down {i}: {y}')
             driver.execute_script(f"window.scrollTo(0, {y});")
 
             # Wait to load page
@@ -101,11 +101,7 @@ def scrape_reviews(filename):
     for node in nodes:
         name, url = get_reviewer(node)
         utype = get_user_type(node)
-        user_type = ''
-        if utype:
-            user_type = f' ({utype})'
-
-        print(f'Name: {name}{user_type} - {url}')
+        # print(f'Name: {name} ({utype}) - {url}')
 
         review = get_review(node)
         rating, date = get_date_rating(node)
@@ -158,6 +154,10 @@ def load_reviews(driver, pages):
             except ElementClickInterceptedException:
                 print('ERROR: ElementClickInterceptedException. Sleep then continue..')
                 time.sleep(1)
+                continue
+            except Exception as e:
+                print(e)
+                print('ERROR. Continue anyway..')
                 continue
 
             print(f'Load more reviews... {i}')
@@ -222,7 +222,8 @@ def main():
             switch_reviews_mode(driver, url)
             try:
                 load_reviews(driver, args.pages)
-            except:
+            except Exception as e:
+                print(e)
                 print('ERROR loading more reviews. Take whatever we have.')
 
             print(str(datetime.now()) + ': Scraping ' + book_id + '...')
