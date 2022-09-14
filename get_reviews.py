@@ -91,9 +91,13 @@ def load_reviews(driver, pages):
     # click the 'Show previous reviews' near the top
     driver.execute_script(f"window.scrollTo(0, 400);")
     time.sleep(1)
-    driver.find_element(By.XPATH, '//span[@data-testid="loadPrev"]').click()
-    print('Show previous reviews..')
-    time.sleep(2)
+    try:
+        driver.find_element(
+            By.XPATH, '//span[@data-testid="loadPrev"]').click()
+        print('Show previous reviews..')
+        time.sleep(2)
+    except Exception as e:
+        print('No previous reviews to load. Continue..')
 
     SCROLL_PAUSE_TIME = 1.5
 
