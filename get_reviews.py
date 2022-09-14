@@ -224,7 +224,7 @@ def main():
     script_name = os.path.basename(__file__)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--pages', default=200,
+    parser.add_argument('--pages', default=100,
                         help="the number of times of the reviews to load", type=int)
     parser.add_argument('--books', type=str, help="Text file containing gooreads book urls",
                         default="goodreads_books.txt")
