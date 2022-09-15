@@ -249,7 +249,7 @@ def main():
     parser.add_argument('--books', type=str, help="Text file containing gooreads book urls",
                         default="goodreads_books.txt")
     parser.add_argument('--output', type=str,
-                        help="Output directory", default="reviews")
+                        help="Output directory", default="stage1_reviews")
     parser.add_argument('--browser', type=str,
                         help="Browser to use", default="chrome")
 
