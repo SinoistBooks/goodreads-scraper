@@ -75,15 +75,15 @@ def switch_reviews_mode(driver, url):
     while True:
         print(f'🚨 Could not go to all reviews page - likely a pop-up or old layout🚨\n🔄 Refreshing Goodreads site..')
 
-        # restart driver with the hope of getting a new layout
-        driver = start_driver()
-        time.sleep(0.5)
-
         driver.get(url)
         time.sleep(0.5)
 
         if _go_to_all_reviews(driver):
             return True  # managed to go to all reviews page
+
+        # restart driver with the hope of getting a new layout
+        driver = start_driver()
+        time.sleep(0.5)
 
         if i > 10:  # after X reloads, we can stop trying
             print('Too many tries to get the new layout. Giving up..')
