@@ -218,6 +218,26 @@ def scrape_reviews(filename):
     return title, reviews
 
 
+def get_driver(browser):
+    # Set up driver
+    if browser.lower() == 'chrome':
+        return webdriver.Chrome(ChromeDriverManager().install())
+    elif browser.lower() == 'firefox':
+        geckodriver_autoinstaller.install()
+        return webdriver.Firefox()
+    # Get an option to work with Google Colab
+    elif browser.lower() == "colab":
+        from selenium.webdriver.chrome.options import Options
+        chrome_options = Options()
+        chrome_options.add_argument("--headless")
+        chrome_options.add_argument('--no-sandbox')
+        return webdriver.Chrome('/usr/lib/chromium-browser/chromedriver', options=chrome_options)
+    else:
+        print('Please select a web browser: Chrome or Firefox')
+
+    return None
+
+
 def main():
 
     start_time = datetime.now()
@@ -238,25 +258,11 @@ def main():
     book_urls = [line.strip()
                  for line in open(args.books, 'r') if line.strip()]
 
-    # Set up driver
-    if args.browser.lower() == 'chrome':
-        driver = webdriver.Chrome(ChromeDriverManager().install())
-    elif args.browser.lower() == 'firefox':
-        geckodriver_autoinstaller.install()
-        driver = webdriver.Firefox()
-    # Get an option to work with Google Colab
-    elif args.browser.lower() == "colab":
-        from selenium.webdriver.chrome.options import Options
-        chrome_options = Options()
-        chrome_options.add_argument("--headless")
-        chrome_options.add_argument('--no-sandbox')
-        driver = webdriver.Chrome(
-            '/usr/lib/chromium-browser/chromedriver', options=chrome_options)
-    else:
-        print('Please select a web browser: Chrome or Firefox')
-
     for i, url in enumerate(book_urls):
         try:
+            # get a new driver for every book
+            driver = get_driver(args.browser)
+
             if not switch_reviews_mode(driver, url):
                 print('Not able to go to reviews page. Skipping this book..')
                 continue
@@ -305,8 +311,9 @@ def main():
 
         except HTTPError:
             pass
-
-    driver.quit()
+        finally:
+            if driver:
+                driver.quit()
 
     print(f'🎉 Success! All book reviews scraped. 🎉\n\n')
     print(f'Goodreads scraping run time = ⏰ ' +
