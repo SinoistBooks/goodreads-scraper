@@ -74,6 +74,11 @@ def switch_reviews_mode(driver, url):
     i = 0
     while True:
         print(f'🚨 Could not go to all reviews page - likely a pop-up or old layout🚨\n🔄 Refreshing Goodreads site..')
+
+        # restart driver with the hope of getting a new layout
+        driver = start_driver()
+        time.sleep(0.5)
+
         driver.get(url)
         time.sleep(0.5)
 
@@ -81,6 +86,7 @@ def switch_reviews_mode(driver, url):
             return True  # managed to go to all reviews page
 
         if i > 10:  # after X reloads, we can stop trying
+            print('Too many tries to get the new layout. Giving up..')
             break
         i += 1
 
@@ -218,7 +224,7 @@ def scrape_reviews(filename):
     return title, reviews
 
 
-def get_driver(browser):
+def start_driver(browser='chrome'):
     # Set up driver
     if browser.lower() == 'chrome':
         return webdriver.Chrome(ChromeDriverManager().install())
@@ -261,7 +267,7 @@ def main():
     for i, url in enumerate(book_urls):
         try:
             # get a new driver for every book
-            driver = get_driver(args.browser)
+            driver = start_driver(args.browser)
 
             if not switch_reviews_mode(driver, url):
                 print('Not able to go to reviews page. Skipping this book..')
