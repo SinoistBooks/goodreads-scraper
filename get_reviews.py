@@ -4,14 +4,15 @@ import os
 import time
 from datetime import datetime
 from bs4 import BeautifulSoup
-from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException, ElementClickInterceptedException
 from urllib.error import HTTPError
+import geckodriver_autoinstaller
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-import geckodriver_autoinstaller
-from webdriver_manager.chrome import ChromeDriverManager
 
 
 REVIEWS_TEMP_FILE = "reviews_tmp.html"
@@ -227,7 +228,7 @@ def scrape_reviews(filename):
 def start_driver(browser='chrome'):
     # Set up driver
     if browser.lower() == 'chrome':
-        return webdriver.Chrome(ChromeDriverManager().install())
+        return webdriver.Chrome(service=Service(ChromeDriverManager().install()))
     elif browser.lower() == 'firefox':
         geckodriver_autoinstaller.install()
         return webdriver.Firefox()
