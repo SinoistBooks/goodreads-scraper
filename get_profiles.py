@@ -1,6 +1,5 @@
 import argparse
 import csv
-from functools import total_ordering
 import os
 import time
 from datetime import datetime
@@ -72,10 +71,13 @@ def get_info_author(soup):
     # get about author section
     about = soup.find('div', {'class': 'aboutAuthorInfo'})
     try:
-        info['about me'] = about.select('span')[1].text
-    except IndexError:
-        # the section is too short so no "more" section
-        info['about me'] = about.select('span')[0].text
+        try:
+            info['about me'] = about.select('span')[1].text
+        except IndexError:
+            # the section is too short so no "more" section
+            info['about me'] = about.select('span')[0].text
+    except Exception as e:
+        pass  # likely that 'about me' does not exist
 
     return info
 
@@ -107,8 +109,10 @@ def load_page(driver, url, wait_time=1):
     f.close()
 
 
-def scrape_profiles(driver, reviews_file):
-    ''' reviews_file: the csv file output from get_reviews.py 
+def scrape_profiles(driver, reviews_file, max):
+    ''' 
+    reviews_file: the csv file output from get_reviews.py 
+    max: max profiles to scrape
     '''
     reviews = []
     title = None
@@ -144,8 +148,10 @@ def scrape_profiles(driver, reviews_file):
 
         try:
             profile = get_profile(driver.page_source, profile)
-        except AttributeError:  # didn't get the page properly
+        except Exception as e:  # didn't get the page properly
+            print(e)
             print(f'Failed to load profile #{i}, try again..')
+
             load_page(driver, url, 1.5)  # load page again and wait longer
             try:
                 profile = get_profile(driver.page_source, profile)
@@ -154,12 +160,10 @@ def scrape_profiles(driver, reviews_file):
                 print(e)
                 print(f'Failed to load profile #{i} the second time. Skip..')
                 continue
-        except Exception as e:
-            print(e)
-            print(f'Error loading profile #{i}. Skip..')
-            continue
 
         profiles.append(profile)
+        if len(profiles) >= max:
+            break
 
     return profiles
 
@@ -172,6 +176,8 @@ def main():
                         help='Input directory containing reviews from get_reviews.py')
     parser.add_argument('--output', type=str, default='stage2_profiles',
                         help='Output directory')
+    parser.add_argument('--max', type=int, default=0,
+                        help='Max profiles to scrape. 0 means scrape everything (default).')
 
     args = parser.parse_args()
 
@@ -186,7 +192,7 @@ def main():
     total_profiles = 0
     for filename in csvfiles:
         reviews_file = os.path.join(args.input, filename)
-        profiles = scrape_profiles(driver, reviews_file)
+        profiles = scrape_profiles(driver, reviews_file, args.max)
         total_profiles += len(profiles)
 
         name, ext = os.path.splitext(reviews_file)
@@ -200,6 +206,10 @@ def main():
             writer = csv.DictWriter(csvfile, fieldnames=FIELDS)
             writer.writeheader()
             writer.writerows(profiles)
+
+        if total_profiles >= args.max:
+            print(f'\nScraped max number of profiles as set ({args.max}).')
+            break
 
     print(
         f'\n🎉 Success! All profiles scraped. Total: {len(csvfiles)} books and {total_profiles} profiles 🎉')
