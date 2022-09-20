@@ -1,12 +1,16 @@
 import argparse
 import csv
+from functools import total_ordering
 import os
 import time
 from datetime import datetime
 from bs4 import BeautifulSoup
 from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from webdriver_manager.chrome import ChromeDriverManager
+
+PROFILE_TMP = 'profile_tmp.html'  # temp profile file for debugging
 
 LOGIN_URL = 'https://www.goodreads.com/ap/signin?openid.assoc_handle=amzn_goodreads_web_na&openid.claimed_id=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0%2Fidentifier_select&openid.identity=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0%2Fidentifier_select&openid.mode=checkid_setup&openid.ns=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0'
 LOGIN_FILE = 'gr_login.txt'
@@ -33,11 +37,18 @@ def get_name(soup):
         return h1.select('span')[0].text
 
 
+def _truncate_more(item):
+    if item.endswith('...more'):
+        return item[:-7].strip()  # truncate the ...more
+    return item
+
+
 def get_info(soup):
     titles = soup.find_all('div', {'class': 'infoBoxRowTitle'})
     titles = [title.text.lower() for title in titles]
     items = soup.find_all('div', {'class': 'infoBoxRowItem'})
-    items = [item.text.strip().rstrip('...more\n') for item in items]
+    items = [item.text.strip() for item in items]
+    items = [_truncate_more(item) for item in items]
     return dict(zip(titles, items))
 
 
@@ -48,9 +59,15 @@ def get_info_author(soup):
     if titles[0] == 'born':
         del titles[0]
     items = soup.find_all('div', {'class': 'dataItem'})
-    items = [item.text.strip().rstrip('...more\n') for item in items]
+    items = [item.text.strip() for item in items]
+    valid_items = []
+    for item in items:
+        if item.endswith('...more'):
+            valid_items.append(item[:-7].strip())  # truncate the ...more
+        else:
+            valid_items.append(item)
 
-    info = dict(zip(titles, items))
+    info = dict(zip(titles, valid_items))
 
     # get about author section
     about = soup.find('div', {'class': 'aboutAuthorInfo'})
@@ -63,12 +80,12 @@ def get_info_author(soup):
     return info
 
 
-def get_profile(source):
+def get_profile(source, profile):
     soup = BeautifulSoup(source, 'lxml')
-    profile = {}
 
-    name = get_name(soup)
-    profile['name'] = name
+    if not profile.get('name'):
+        name = get_name(soup)
+        profile['name'] = name
 
     if soup.find('div', {'class': 'infoBoxRowTitle'}):
         info = get_info(soup)
@@ -80,52 +97,119 @@ def get_profile(source):
     return profile
 
 
-def main():
-    start_time = datetime.now()
-    script_name = os.path.basename(__file__)
+def load_page(driver, url, wait_time=1):
+    driver.get(url)
+    time.sleep(wait_time)
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--profile_urls', type=str, default='gr_profiles.txt')
-    parser.add_argument('--output_dir', type=str, default='profiles')
+    # for debugging, in case there's an error, we can look at the last profile
+    f = open(PROFILE_TMP, "w")
+    f.write(driver.page_source)
+    f.close()
 
-    args = parser.parse_args()
 
-    urls = [line.strip()
-            for line in open(args.profile_urls, 'r') if line.strip()]
+def scrape_profiles(driver, reviews_file):
+    ''' reviews_file: the csv file output from get_reviews.py 
+    '''
+    reviews = []
+    title = None
+    with open(reviews_file, 'r') as csvfile:
+        reader = csv.reader(csvfile)
+        i = 0
+        for row in reader:
+            if i == 0:  # first row is the header
+                assert row[0] == 'title'
+                headers = row
+            else:
+                # convert list to dictionary with headers as keys
+                review = {}
+                j = 0
+                for header in headers:
+                    review[header] = row[j]
+                    j += 1
+                reviews.append(review)
+            i += 1
 
-    driver = webdriver.Chrome(ChromeDriverManager().install())
-    login(driver)
+    print(
+        f'\nScraping profiles for book: {reviews[0]["title"]} by {reviews[0]["authors"]}')
 
     profiles = []
-    for i, url in enumerate(urls):
-        print(str(datetime.now()) + f': Scraping profile #{i}: ' + url)
+    for i, review in enumerate(reviews):
+        url = review['url']
+        print(f' Scraping profile #{i+1}: ' + url)
 
-        driver.get(url)
-        time.sleep(0.5)
+        # copy the review data info to the profile
+        profile = review
 
-        # for debugging, in case there's an error, we can look at the last profile
-        f = open("profile_tmp.html", "w")
-        f.write(driver.page_source)
-        f.close()
+        load_page(driver, url)
 
-        profile = get_profile(driver.page_source)
-        profile['source url'] = url  # add the source URL for reference
+        try:
+            profile = get_profile(driver.page_source, profile)
+        except AttributeError:  # didn't get the page properly
+            print(f'Failed to load profile #{i}, try again..')
+            load_page(driver, url, 1.5)  # load page again and wait longer
+            try:
+                profile = get_profile(driver.page_source, profile)
+            except Exception as e:
+                # if failed again, skip
+                print(e)
+                print(f'Failed to load profile #{i} the second time. Skip..')
+                continue
+        except Exception as e:
+            print(e)
+            print(f'Error loading profile #{i}. Skip..')
+            continue
 
         profiles.append(profile)
 
-    pro_file = os.path.join(args.output_dir, f"profiles.csv")
-    FIELDS = ['name', 'source url', 'website', 'twitter', 'details', 'activity', 'about me', 'interests',
-              'favorite books', 'url', 'genre', 'influences', 'birthday', 'member since']
-    with open(pro_file, 'w') as csvfile:
-        writer = csv.DictWriter(csvfile, fieldnames=FIELDS)
-        writer.writeheader()
-        writer.writerows(profiles)
+    return profiles
 
-    print(str(datetime.now()) + ' ' + script_name + f':\n\n')
-    print(f'🎉 Success! All profiles scraped. 🎉\n\n')
-    print(f'Goodreads profiles file has been output to /{args.output_dir}\n')
+
+def main():
+    start_time = datetime.now()
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--input', type=str, default='stage1_reviews',
+                        help='Input directory containing reviews from get_reviews.py')
+    parser.add_argument('--output', type=str, default='stage2_profiles',
+                        help='Output directory')
+
+    args = parser.parse_args()
+
+    csvfiles = []
+    for item in os.listdir(args.input):
+        if item.endswith('_reviews.csv'):
+            csvfiles.append(item)
+
+    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
+    login(driver)  # login to GR (needed to get the profiles)
+
+    total_profiles = 0
+    for filename in csvfiles:
+        reviews_file = os.path.join(args.input, filename)
+        profiles = scrape_profiles(driver, reviews_file)
+        total_profiles += len(profiles)
+
+        name, ext = os.path.splitext(reviews_file)
+        pro_file = os.path.join(
+            args.output, filename.replace('_reviews', '_profiles'))
+
+        FIELDS = ['title', 'authors', 'name', 'user_type', 'url', 'rating', 'date', 'review', 'website',
+                  'twitter', 'details', 'activity', 'about me', 'interests', 'favorite books',
+                  'genre', 'influences', 'birthday', 'member since']
+        with open(pro_file, 'w') as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=FIELDS)
+            writer.writeheader()
+            writer.writerows(profiles)
+
+    print(
+        f'\n🎉 Success! All profiles scraped. Total: {len(csvfiles)} books and {total_profiles} profiles 🎉')
+    print(f'\nGoodreads profiles have been saved to /{args.output}\n')
     print(f'Goodreads scraping run time = ⏰ ' +
           str(datetime.now() - start_time) + ' ⏰')
+
+    # all good, do not need the temp profile anymore
+    if os.path.exists(PROFILE_TMP):
+        os.remove(PROFILE_TMP)
 
 
 if __name__ == '__main__':
