@@ -1,4 +1,4 @@
-_dionizh: This repo is forked from and built on top of maria-antoniak's goodreads-scraper. I modified a couple of files to work with GR new layout and added a couple more files. I did not submit a PR to the original repo, as I worked on things that suit my purposes only._
+_dionizh: This repo is forked from maria-antoniak's goodreads-scraper. The more I work on this repo, the further it's grown apart, so at one point I decided to detach from the original repo. Apart from this readme which I have not updated, almost all the files have been majorly updated, mainly to work with the Goodreads new layout, and irrelevant files deleted._
 
 # Goodreads Scraper
 
