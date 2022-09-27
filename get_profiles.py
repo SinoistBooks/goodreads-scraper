@@ -195,14 +195,13 @@ def main():
         profiles = scrape_profiles(driver, reviews_file, args.max)
         total_profiles += len(profiles)
 
-        name, ext = os.path.splitext(reviews_file)
-        pro_file = os.path.join(
+        outfile = os.path.join(
             args.output, filename.replace('_reviews', '_profiles'))
 
         FIELDS = ['title', 'authors', 'name', 'user_type', 'url', 'rating', 'date', 'review', 'website',
                   'twitter', 'details', 'activity', 'about me', 'interests', 'favorite books',
                   'genre', 'influences', 'birthday', 'member since']
-        with open(pro_file, 'w') as csvfile:
+        with open(outfile, 'w') as csvfile:
             writer = csv.DictWriter(csvfile, fieldnames=FIELDS)
             writer.writeheader()
             writer.writerows(profiles)
