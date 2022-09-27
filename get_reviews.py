@@ -43,14 +43,14 @@ def _go_to_all_reviews(driver):
             more_reviews_button = driver.find_element(
                 By.XPATH, '//div[@class="lazyload-wrapper "]/div[@class="ReviewsList"]/div[4]/a')
         except NoSuchElementException:
-            time.sleep(1)
+            time.sleep(1.5)
             continue  # try again
 
         if more_reviews_button:
             try:
                 more_reviews_button.click()
             except ElementClickInterceptedException:
-                time.sleep(1)  # wait, scroll up and try again
+                time.sleep(1.5)  # wait, scroll up and try again
                 try:
                     driver.execute_script(
                         f"window.scrollTo(0, {height - 1000});")
@@ -98,6 +98,7 @@ def switch_reviews_mode(driver, url):
 
 def load_reviews(driver, pages):
     # click the 'Show previous reviews' near the top
+    time.sleep(1)
     driver.execute_script(f"window.scrollTo(0, 400);")
     time.sleep(1)
     try:
