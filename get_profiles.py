@@ -2,9 +2,11 @@ import argparse
 import csv
 import os
 import time
-from datetime import datetime
 from bs4 import BeautifulSoup
+from datetime import datetime
+from fake_useragent import UserAgent
 from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from webdriver_manager.chrome import ChromeDriverManager
@@ -24,7 +26,11 @@ def login(driver):
     driver.find_element(By.XPATH, '//input[@name="email"]').send_keys(email)
     driver.find_element(
         By.XPATH, '//input[@name="password"]').send_keys(password)
+    time.sleep(2)
+
     driver.find_element(By.XPATH, '//input[@id="signInSubmit"]').click()
+    # you have 10 seconds to resolve the recaptcha if it comes up
+    time.sleep(10)
 
 
 def get_name(soup):
@@ -162,7 +168,7 @@ def scrape_profiles(driver, reviews_file, max):
                 continue
 
         profiles.append(profile)
-        if len(profiles) >= max:
+        if max > 0 and len(profiles) >= max:
             break
 
     return profiles
@@ -186,7 +192,14 @@ def main():
         if item.endswith('_reviews.csv'):
             csvfiles.append(item)
 
-    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
+    options = Options()
+    ua = UserAgent()
+    userAgent = ua.random
+    print(userAgent)
+    options.add_argument(f'user-agent={userAgent}')
+
+    driver = webdriver.Chrome(options=options, service=Service(
+        ChromeDriverManager().install()))
     login(driver)  # login to GR (needed to get the profiles)
 
     total_profiles = 0
