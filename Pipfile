@@ -12,6 +12,7 @@ webdriver-manager = "*"
 pandas = "*"
 regex = "*"
 credentials = "*"
+fake-useragent = "*"
 
 [dev-packages]
 
