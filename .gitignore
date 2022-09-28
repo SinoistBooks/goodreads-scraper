@@ -1,7 +1,6 @@
-test-output/test-books/*
-test-output/test-reviews/*
 geckodriver.log
 .DS_Store
 stage1_reviews
 stage2_profiles
 stage3_contacts
+gr_login.txt
