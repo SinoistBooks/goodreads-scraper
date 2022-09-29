@@ -115,10 +115,9 @@ def load_page(driver, url, wait_time=1):
     f.close()
 
 
-def scrape_profiles(driver, reviews_file, max):
+def scrape_profiles(driver, reviews_file):
     ''' 
     reviews_file: the csv file output from get_reviews.py 
-    max: max profiles to scrape
     '''
     reviews = []
     title = None
@@ -168,8 +167,6 @@ def scrape_profiles(driver, reviews_file, max):
                 continue
 
         profiles.append(profile)
-        if max > 0 and len(profiles) >= max:
-            break
 
     return profiles
 
@@ -212,7 +209,7 @@ def main():
             continue
 
         reviews_file = os.path.join(args.input, filename)
-        profiles = scrape_profiles(driver, reviews_file, args.max)
+        profiles = scrape_profiles(driver, reviews_file)
         total_profiles += len(profiles)
 
         outfile = os.path.join(
