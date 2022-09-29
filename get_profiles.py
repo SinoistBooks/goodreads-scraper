@@ -187,6 +187,10 @@ def main():
 
     args = parser.parse_args()
 
+    # create output folder if does not exist
+    if not os.path.exists(args.output):
+        os.mkdir(args.output)
+
     csvfiles = []
     for item in os.listdir(args.input):
         if item.endswith('_reviews.csv'):
