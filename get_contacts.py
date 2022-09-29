@@ -1,6 +1,6 @@
 import argparse
 import csv
-import emailhunt
+import emailhunter
 import os
 import re
 from datetime import datetime
@@ -92,7 +92,7 @@ def scrape_contacts(driver, filepath):
             # if email not found on GR profile, look on their websites.
             # only do this for personal websites.
             for site in personal_sites:
-                emails.extend(emailhunt.get_emails(site))
+                emails.extend(emailhunter.get_emails(site))
 
             emails = set(emails)  # remove duplicates
             print(f'\nFound emails: {", ".join(emails)}')
