@@ -265,6 +265,10 @@ def main():
 
     args = parser.parse_args()
 
+    # create output folder if does not exist
+    if not os.path.exists(args.output):
+        os.mkdir(args.output)
+
     book_urls = [line.strip()
                  for line in open(args.books, 'r') if line.strip()]
 
