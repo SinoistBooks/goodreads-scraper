@@ -144,7 +144,8 @@ def scrape_profiles(driver, reviews_file):
     profiles = []
     for i, review in enumerate(reviews):
         url = review['url']
-        print(f' Scraping profile #{i+1}: ' + url)
+        num = i + 1
+        print(f' Scraping profile #{num}: ' + url)
 
         # copy the review data info to the profile
         profile = review
@@ -155,7 +156,7 @@ def scrape_profiles(driver, reviews_file):
             profile = get_profile(driver.page_source, profile)
         except Exception as e:  # didn't get the page properly
             print(e)
-            print(f'Failed to load profile #{i}, try again..')
+            print(f'Failed to load profile #{num}, try again..')
 
             load_page(driver, url, 1.5)  # load page again and wait longer
             try:
@@ -163,7 +164,7 @@ def scrape_profiles(driver, reviews_file):
             except Exception as e:
                 # if failed again, skip
                 print(e)
-                print(f'Failed to load profile #{i} the second time. Skip..')
+                print(f'Failed to load profile #{num} the second time. Skip..')
                 continue
 
         profiles.append(profile)
