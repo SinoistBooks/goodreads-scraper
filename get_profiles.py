@@ -182,8 +182,7 @@ def main():
                         help='Input directory containing reviews from get_reviews.py')
     parser.add_argument('--output', type=str, default='stage2_profiles',
                         help='Output directory')
-    parser.add_argument('--max', type=int, default=0,
-                        help='Max profiles to scrape. 0 means scrape everything (default).')
+    parser.add_argument('-d', '--dryrun', action='store_true', help='Dry run')
 
     args = parser.parse_args()
 
@@ -208,6 +207,10 @@ def main():
 
     total_profiles = 0
     for filename in csvfiles:
+        if args.dryrun:
+            print(f'Scraping profiles from {filename}..')
+            continue
+
         reviews_file = os.path.join(args.input, filename)
         profiles = scrape_profiles(driver, reviews_file, args.max)
         total_profiles += len(profiles)
@@ -222,10 +225,8 @@ def main():
             writer = csv.DictWriter(csvfile, fieldnames=FIELDS)
             writer.writeheader()
             writer.writerows(profiles)
-
-        if total_profiles >= args.max:
-            print(f'\nScraped max number of profiles as set ({args.max}).')
-            break
+        print(
+            f'\n🎉 Profiles scraped for f{filename}. Total: {len(profiles)} profiles 🎉')
 
     print(
         f'\n🎉 Success! All profiles scraped. Total: {len(csvfiles)} books and {total_profiles} profiles 🎉')
