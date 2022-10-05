@@ -15,6 +15,9 @@ def get_emails(txt):
 def get_websites(txt):
     # get what looks like websites
     sites = re.findall('([http|https]+:\/\/[\w\-\.\/]+)', txt)
+    # get those with .com
+    coms = re.findall('([\w\-\.\/\:]+\.com[\w\-\/]+)', txt)
+    sites.extend(coms)
     # exclude truncated urls
     sites = [site for site in sites if not site.endswith('...')]
     # exclude goodreads site
