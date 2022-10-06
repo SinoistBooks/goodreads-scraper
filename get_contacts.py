@@ -4,25 +4,9 @@ import emailhunter
 import os
 import re
 from datetime import datetime
+from instaloader import Instaloader
 
-
-def get_emails(txt):
-    # get what looks like emails
-    emails = re.findall('[\w\-\_]+@[\w\-\_]+\.[a-zA-Z]+', txt)
-    return set(emails)
-
-
-def get_websites(txt):
-    # get what looks like websites
-    sites = re.findall('([http|https]+:\/\/[\w\-\.\/]+)', txt)
-    # get those with .com
-    coms = re.findall('([\w\-\.\/\:]+\.com[\w\-\/]+)', txt)
-    sites.extend(coms)
-    # exclude truncated urls
-    sites = [site for site in sites if not site.endswith('...')]
-    # exclude goodreads site
-    sites = [site for site in sites if not re.match('.*goodreads.*', site)]
-    return set(sites)
+LOGIN_FILE = 'insta_login.txt'
 
 
 def get_profiles_from_csv(filepath):
@@ -50,8 +34,19 @@ def get_profiles_from_csv(filepath):
     return profiles
 
 
-def scrape_contacts(driver, filepath):
+def scrape_contacts(filepath):
     profiles = get_profiles_from_csv(filepath)
+
+    # read insta login detail from the text file
+    f = open(LOGIN_FILE, 'r')
+    username, password = f.read().split()
+
+    # create the instagram loader now so it can be reused for multiple sites
+    loader = Instaloader()
+    try:
+        loader.login(username, password)
+    except Exception as e:
+        print(e)
 
     counter = {'instagram': 0, 'youtube': 0, 'facebook': 0,
                'twitter': 0, 'personal': 0, 'profile_w_email': 0}
@@ -60,17 +55,19 @@ def scrape_contacts(driver, filepath):
     count = 0
     profile_contacts = []
     for profile in profiles:
+        count += 1
+        print(f'\n#{count}')
+
         websites = []
         emails = []
         for k, v in profile.items():
             if k == 'url':
                 continue
 
-            websites.extend(get_websites(v))
-            emails.extend(get_emails(v))
+            websites.extend(emailhunter.get_links(v))
+            emails.extend(emailhunter.get_emails(v))
 
         websites = set(websites)  # remove duplicates
-        profile['websites'] = ','.join(websites)
 
         personal_sites = []
         if websites:
@@ -78,6 +75,7 @@ def scrape_contacts(driver, filepath):
             for site in websites:
                 if re.match('.*instagram.*', site):
                     counter['instagram'] += 1
+                    personal_sites.append(site)
                 elif re.match('.*youtube.*', site):
                     counter['youtube'] += 1
                 elif re.match('.*facebook.*', site):
@@ -88,29 +86,46 @@ def scrape_contacts(driver, filepath):
                     counter['personal'] += 1
                     personal_sites.append(site)
 
+        print(f'Name: {profile["name"]} | {profile["url"]}')
+        print(f'Sites: {", ".join(websites)}')
+
+        insta_profile = None
         if personal_sites:
-            print(f'\nName: {profile["name"]} | {profile["url"]}')
-            print(f'Sites: {personal_sites}')
-
             # if email not found on GR profile, look on their websites.
-            # only do this for personal websites.
+            # only do this for personal websites and instagram.
             for site in personal_sites:
-                emails.extend(emailhunter.get_emails(site))
+                if re.match('.*instagram.*', site):
+                    insta_profile, insta_emails = emailhunter.get_insta_profile(
+                        site, loader)
+                    emails.extend(insta_emails)
+                else:
+                    emails.extend(emailhunter.get_emails(site))
 
-            emails = set(emails)  # remove duplicates
-            print(f'\nFound emails: {", ".join(emails)}')
-            profile['emails'] = ','.join(emails)
-        else:
+        # found extra info from instagram profile
+        if insta_profile:
+            # add the url found on instagram to the set of websites
+            if insta_profile.get('external_url'):
+                websites.add(insta_profile.get('external_url'))
+
+            profile['insta_biography'] = insta_profile['biography']
+            profile['insta_followers'] = insta_profile['followers']
+            profile['insta_following'] = insta_profile['following']
+            print(f"Instagram bio: {profile['insta_biography']}")
             print(
-                f'\nNo personal website for user: {profile["name"]} | {profile["url"]}. Skip..')
+                f"Instagram stats: {profile['insta_followers']} followers | {profile['insta_followers']} following")
 
+        profile['websites'] = ','.join(websites)
+
+        emails = set(emails)  # remove duplicates
         if len(emails) > 0:
+            print(f'\nEmails: {", ".join(emails)}')
             counter['profile_w_email'] += 1
+        else:
+            print(f'No email found.')
+        profile['emails'] = ','.join(emails)
 
-        profile_contacts.append(profile)
-
-        count += 1
-        print(f'{count}...')
+        if len(profile['emails']) > 0 or len(profile['websites']) > 0:
+            profile_contacts.append(profile)
 
     print(f'\nTotal profiles with websites: {len(profile_contacts)}')
     print(
@@ -141,20 +156,19 @@ def main():
         if item.endswith('_profiles.csv'):
             csvfiles.append(item)
 
-    driver = None
-
     today = datetime.today()
     outfile = os.path.join(
         args.output, f'contacts_{today.strftime("%Y%m%d")}.txt')
 
     for filename in csvfiles:
         filepath = os.path.join(args.input, filename)
-        profile_w_contacts = scrape_contacts(driver, filepath)
+        profile_w_contacts = scrape_contacts(filepath)
 
         # 2 additional fields from this process (emails and websites)
         FIELDS = ['title', 'authors', 'name', 'emails', 'websites', 'user_type', 'url', 'rating',
                   'date', 'review', 'website', 'twitter', 'details', 'activity', 'about me',
-                  'interests', 'favorite books', 'genre', 'influences', 'birthday', 'member since']
+                  'insta_biography', 'insta_followers', 'insta_following', 'interests',
+                  'favorite books', 'genre', 'influences', 'birthday', 'member since']
         with open(outfile, 'w') as csvfile:
             writer = csv.DictWriter(csvfile, fieldnames=FIELDS)
             writer.writeheader()
