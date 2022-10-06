@@ -100,7 +100,7 @@ def get_insta_profile(url, loader):
 
     Return: insta profile (dict) and emails (list)
     """
-    m = re.match('.*instagram.com\/([\w]+)', url)
+    m = re.match('.*instagram.com\/([\w\.]+)', url)
     if not m:
         print(f'ERROR: Unable to get instagram username from: {url}')
         return None, []
