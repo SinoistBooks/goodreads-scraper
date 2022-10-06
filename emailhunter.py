@@ -42,7 +42,12 @@ def get_emails_links_by_url(url):
     except requests.exceptions.MissingSchema:
         # missing http:// so add and try again
         url = f'http://{url}'
-        r = requests.get(url)
+        try:
+            r = requests.get(url)
+        except Exception as e:
+            print(e)
+            print(f'ERROR connecting to {url}. Skipping..')
+            return [], []
     except Exception as e:
         print(e)
         print(f'ERROR connecting to {url}. Skipping..')
@@ -125,5 +130,7 @@ def get_insta_profile(url, loader):
         return insta, emails
 
     # if not found, search in the external url
-    emails, _ = get_emails_links_by_url(profile.external_url)
+    if profile.external_url:
+        emails, _ = get_emails_links_by_url(profile.external_url)
+
     return insta, emails
