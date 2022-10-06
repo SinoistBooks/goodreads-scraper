@@ -43,6 +43,10 @@ def get_emails_links_by_url(url):
         # missing http:// so add and try again
         url = f'http://{url}'
         r = requests.get(url)
+    except Exception as e:
+        print(e)
+        print(f'ERROR connecting to {url}. Skipping..')
+        return [], []
 
     # unescape html characters
     txt = html.unescape(r.text)
