@@ -23,7 +23,7 @@ def get_links(txt):
     # get what looks like websites from a given text
     links = re.findall('([http|https]+:\/\/[\w\-\.\/]+)', txt)
     # get those with .com
-    coms = re.findall('([\w\-\.\/\:]+\.com[\w\-\/]+)', txt)
+    coms = re.findall('([\w\-\.\/\:]+\.com[\w\-\.\/]+)', txt)
     links.extend(coms)
     # exclude truncated urls
     links = [link for link in links if not link.endswith('...')]
