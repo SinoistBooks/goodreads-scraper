@@ -112,7 +112,7 @@ def scrape_contacts(filepath):
             profile['insta_following'] = insta_profile['following']
             print(f"Instagram bio: {profile['insta_biography']}")
             print(
-                f"Instagram stats: {profile['insta_followers']} followers | {profile['insta_followers']} following")
+                f"Instagram stats: {profile['insta_followers']} followers | {profile['insta_following']} following")
 
         profile['websites'] = ','.join(websites)
 
