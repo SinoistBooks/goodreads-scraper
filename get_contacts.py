@@ -95,15 +95,16 @@ def scrape_contacts(filepath):
             # only do this for personal websites and instagram.
             for site in personal_sites:
                 if re.match('.*instagram.*', site):
-                    try:
-                        insta_profile, insta_emails = emailhunter.get_insta_profile(
-                            site, loader)
-                    except Exception as e:
-                        print(e)
-                        print(f'ERROR in accessing IG: {site}. Skipping..')
-                        continue
+                    # try:
+                    #     insta_profile, insta_emails = emailhunter.get_insta_profile(
+                    #         site, loader)
+                    # except Exception as e:
+                    #     print(e)
+                    #     print(f'ERROR in accessing IG: {site}. Skipping..')
+                    #     continue
 
-                    emails.extend(insta_emails)
+                    # emails.extend(insta_emails)
+                    pass  #  IG not working now
                 else:
                     emails.extend(emailhunter.get_emails(site))
 
