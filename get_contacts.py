@@ -29,16 +29,18 @@ def get_profiles_from_csv(filepath):
                 profiles.append(profile)
             i += 1
 
+    title = profiles[0]["title"]
+    authors = profiles[0]["authors"]
     print(
-        f'\nScraping contacts for book: {profiles[0]["title"]} by {profiles[0]["authors"]}')
-    return profiles
+        f'\nScraping contacts for book: {title} by {authors}')
+    return profiles, title, authors
 
 
 def scrape_contacts(filepath, ig_loader=None):
     """ ig_loader: scrape instagram if there's loader instance. default to None/False, 
             as it often hits rate limit.
     """
-    profiles = get_profiles_from_csv(filepath)
+    profiles, title, authors = get_profiles_from_csv(filepath)
 
     counter = {'instagram': 0, 'youtube': 0, 'facebook': 0,
                'twitter': 0, 'personal': 0, 'profile_w_email': 0}
@@ -128,7 +130,8 @@ def scrape_contacts(filepath, ig_loader=None):
         if len(profile['emails']) > 0 or len(profile['websites']) > 0:
             profile_contacts.append(profile)
 
-    print(f'\nTotal profiles with websites: {len(profile_contacts)}')
+    print(f'\nBook: {title} by {authors}')
+    print(f'Total profiles with websites: {len(profile_contacts)}')
     print(
         f"instagram: {counter['instagram']} | youtube: {counter['youtube']} | facebook: {counter['facebook']} | twitter: {counter['twitter']} | personal: {counter['personal']}")
     print(
