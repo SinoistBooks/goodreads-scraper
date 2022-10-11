@@ -21,12 +21,12 @@ def get_emails(txt):
 
 def get_links(txt):
     # get what looks like websites from a given text
-    links = re.findall('([http|https]+:\/\/[\w\-\.\/]+)', txt)
+    links = re.findall('([http|https]+:\/\/[\w\-\/\=\?\.]+)', txt)
     # get those with .com
-    coms = re.findall('([\w\-\.\/\:]+\.com[\w\-\.\/]+)', txt)
+    coms = re.findall('([\w\-\.\/\:]+\.com[\w\-\/\=\?\.]+)', txt)
     links.extend(coms)
-    # exclude truncated urls
-    links = [link for link in links if not link.endswith('...')]
+    # exclude truncated urls (with ...)
+    links = [link for link in links if not re.findall('\.{3}', link)]
     # exclude goodreads site
     links = [link for link in links if not re.match('.*goodreads.*', link)]
     return set(links)

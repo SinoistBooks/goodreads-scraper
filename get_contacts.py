@@ -55,10 +55,13 @@ def scrape_contacts(filepath, ig_loader=None):
         websites = []
         emails = []
         for k, v in profile.items():
-            if k == 'url':
+            if k == 'url' or k == 'review':
+                continue
+            if not v:
                 continue
 
-            websites.extend(emailhunter.get_links(v))
+            links = emailhunter.get_links(v)
+            websites.extend(links)
             emails.extend(emailhunter.get_emails(v))
 
         websites = set(websites)  # remove duplicates
@@ -81,7 +84,7 @@ def scrape_contacts(filepath, ig_loader=None):
                     personal_sites.append(site)
 
         print(f'Name: {profile["name"]} | {profile["url"]}')
-        print(f'Sites: {", ".join(websites)}')
+        print(f'Sites: {" | ".join(websites)}')
 
         insta_profile = None
         if personal_sites:
