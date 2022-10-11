@@ -34,19 +34,11 @@ def get_profiles_from_csv(filepath):
     return profiles
 
 
-def scrape_contacts(filepath):
+def scrape_contacts(filepath, ig_loader=None):
+    """ ig_loader: scrape instagram if there's loader instance. default to None/False, 
+            as it often hits rate limit.
+    """
     profiles = get_profiles_from_csv(filepath)
-
-    # read insta login detail from the text file
-    f = open(LOGIN_FILE, 'r')
-    username, password = f.read().split()
-
-    # create the instagram loader now so it can be reused for multiple sites
-    loader = Instaloader()
-    try:
-        loader.login(username, password)
-    except Exception as e:
-        print(e)
 
     counter = {'instagram': 0, 'youtube': 0, 'facebook': 0,
                'twitter': 0, 'personal': 0, 'profile_w_email': 0}
@@ -95,16 +87,18 @@ def scrape_contacts(filepath):
             # only do this for personal websites and instagram.
             for site in personal_sites:
                 if re.match('.*instagram.*', site):
-                    # try:
-                    #     insta_profile, insta_emails = emailhunter.get_insta_profile(
-                    #         site, loader)
-                    # except Exception as e:
-                    #     print(e)
-                    #     print(f'ERROR in accessing IG: {site}. Skipping..')
-                    #     continue
+                    if ig_loader:
+                        try:
+                            insta_profile, insta_emails = emailhunter.get_insta_profile(
+                                site, ig_loader)
+                        except Exception as e:
+                            print(e)
+                            print(f'ERROR in accessing IG: {site}. Skipping..')
+                            continue
 
-                    # emails.extend(insta_emails)
-                    pass  #  IG not working now
+                        emails.extend(insta_emails)
+                    else:
+                        pass  #  not scraping IG
                 else:
                     emails.extend(emailhunter.get_emails(site))
 
@@ -151,6 +145,8 @@ def main():
                         help='Input directory containing reviews from get_reviews.py')
     parser.add_argument('--output', type=str, default='stage3_contacts',
                         help='Output directory')
+    parser.add_argument('--ig', action='store_true',
+                        help='Scrape instagram if set')
 
     args = parser.parse_args()
 
@@ -165,21 +161,36 @@ def main():
 
     today = datetime.today()
     outfile = os.path.join(
-        args.output, f'contacts_{today.strftime("%Y%m%d")}.txt')
+        args.output, f'contacts_{today.strftime("%Y%m%d")}.csv')
 
+    ig_loader = None
+    # create the instagram loader now so it can be reused for multiple sites
+    if args.ig:
+        # read insta login detail from the text file
+        f = open(LOGIN_FILE, 'r')
+        username, password = f.read().split()
+
+        ig_loader = Instaloader()
+        try:
+            ig_loader.login(username, password)
+        except Exception as e:
+            print(e)
+
+    profile_w_contacts = []
     for filename in csvfiles:
         filepath = os.path.join(args.input, filename)
-        profile_w_contacts = scrape_contacts(filepath)
+        profiles_set = scrape_contacts(filepath, ig_loader)
+        profile_w_contacts.extend(profiles_set)
 
-        # 2 additional fields from this process (emails and websites)
-        FIELDS = ['title', 'authors', 'name', 'emails', 'websites', 'user_type', 'url', 'rating',
-                  'date', 'review', 'website', 'twitter', 'details', 'activity', 'about me',
-                  'insta_biography', 'insta_followers', 'insta_following', 'interests',
-                  'favorite books', 'genre', 'influences', 'birthday', 'member since']
-        with open(outfile, 'w') as csvfile:
-            writer = csv.DictWriter(csvfile, fieldnames=FIELDS)
-            writer.writeheader()
-            writer.writerows(profile_w_contacts)
+    # 2 additional fields from this process (emails and websites)
+    FIELDS = ['title', 'authors', 'name', 'emails', 'websites', 'insta_biography',
+              'insta_followers', 'insta_following', 'user_type', 'url', 'rating', 'date', 'review',
+              'website', 'twitter', 'details', 'activity', 'about me', 'interests',
+              'favorite books', 'genre', 'influences', 'birthday', 'member since']
+    with open(outfile, 'w') as csvfile:
+        writer = csv.DictWriter(csvfile, fieldnames=FIELDS)
+        writer.writeheader()
+        writer.writerows(profile_w_contacts)
 
     print(
         f'\n🎉 Success! Contacts scraped. Total: {len(profile_w_contacts)} profiles with contacts 🎉')
