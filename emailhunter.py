@@ -22,7 +22,7 @@ def get_emails(txt):
     # remove "emails" that are images
     for email in emails:
         _, ext = os.path.splitext(email)
-        if ext == '.jpg' or ext == '.png':
+        if ext == '.jpg' or ext == '.png' or ext == '.gif':
             continue
         else:
             valid_emails.add(email)
