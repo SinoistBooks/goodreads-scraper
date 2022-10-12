@@ -16,15 +16,16 @@ def get_domain(url):
 
 def get_emails(txt):
     # get what looks like email from a given text
-    return set(re.findall('[\w\-\_]+@[\w\-\_]+\.[a-zA-Z]+', txt))
+    return set(re.findall('[\w\-\_\.]{2,}@[\w\-\_]{2,}\.[a-zA-Z]{2,}', txt))
 
 
-def get_links(txt):
+def get_links(txt, include_incomplete=True):
     # get what looks like websites from a given text
-    links = re.findall('([http|https]+:\/\/[\w\-\/\=\?\.]+)', txt)
-    # get those with .com
-    coms = re.findall('([\w\-\.\/\:]+\.com[\w\-\/\=\?\.]+)', txt)
-    links.extend(coms)
+    links = re.findall('([http|https]+:\/\/[\w\-]+\.{1,}[\w\-\/\=\?\.]+)', txt)
+    # if no links found, get incomplete links (without http and with .com)
+    if include_incomplete and not links:
+        incomplete_links = re.findall('(www\.{1,}[\w\-\/\=\?\.]+)', txt)
+        links.extend(incomplete_links)
     # exclude truncated urls (with ...)
     links = [link for link in links if not re.findall('\.{3}', link)]
     # exclude goodreads site
@@ -61,9 +62,7 @@ def get_emails_links_by_url(url):
     if emails:
         return emails, []  # if there's email, no need to find links
 
-    links = get_links(txt)
-    print(f'Total {len(links)} links found.')
-
+    links = get_links(txt, include_incomplete=False)
     return emails, links
 
 
@@ -72,7 +71,7 @@ def hunt_emails(url):
     It will try to find emails from the url, and from likely links found on 
     the first url.
     """
-    print(f'\nSearch for emails from URL: {url}')
+    print(f'\nHunt emails on URL: {url}')
     emails, links = get_emails_links_by_url(url)
     if len(emails) >= 1:
         # got email(s), no need to look further
@@ -90,11 +89,13 @@ def hunt_emails(url):
             valid_links.append(link)
         elif re.match('.*contact.*', link):
             valid_links.append(link)
+        elif re.match('.*review.*policy.*', link):
+            valid_links.append(link)
 
     if valid_links:
         print('Potentially good links:')
         for link in valid_links:
-            print(f' {link}')
+            print(f'- {link}')
             emails, _ = get_emails_links_by_url(link)
             if len(emails) >= 1:
                 # found emails!
