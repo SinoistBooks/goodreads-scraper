@@ -105,7 +105,7 @@ def scrape_contacts(filepath, ig_loader=None):
                     else:
                         pass  #  not scraping IG
                 else:
-                    emails.extend(emailhunter.get_emails(site))
+                    emails.extend(emailhunter.hunt_emails(site))
 
         # found extra info from instagram profile
         if insta_profile:
@@ -140,7 +140,8 @@ def scrape_contacts(filepath, ig_loader=None):
     print(
         f"From personal websites, the number of emails acquired: {counter['profile_w_email']}")
 
-    return profile_contacts
+    # return a list of profiles with contacts (sites+emails and the number of profile with emails)
+    return profile_contacts, counter['profile_w_email']
 
 
 def main():
@@ -183,9 +184,12 @@ def main():
             print(e)
 
     profile_w_contacts = []
+    total_profile_w_email = 0
     for filename in csvfiles:
         filepath = os.path.join(args.input, filename)
-        profiles_set = scrape_contacts(filepath, ig_loader)
+        profiles_set, profile_w_email_count = scrape_contacts(
+            filepath, ig_loader)
+        total_profile_w_email += profile_w_email_count
         profile_w_contacts.extend(profiles_set)
 
     # 2 additional fields from this process (emails and websites)
@@ -198,8 +202,10 @@ def main():
         writer.writeheader()
         writer.writerows(profile_w_contacts)
 
+    print(f'\n🎉 Success! Contacts scraped.  🎉')
     print(
-        f'\n🎉 Success! Contacts scraped. Total: {len(profile_w_contacts)} profiles with contacts 🎉')
+        f'Total number of profiles with contacts (websites/emails): {len(profile_w_contacts)}')
+    print(f'Total number of profiles with email: {total_profile_w_email}')
     print(f'\nContacts have been saved to /{outfile}\n')
     print(f'Contacts scraping run time = ⏰ ' +
           str(datetime.now() - start_time) + ' ⏰')
