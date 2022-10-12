@@ -1,4 +1,5 @@
 import html
+import os
 import re
 import requests
 
@@ -16,7 +17,16 @@ def get_domain(url):
 
 def get_emails(txt):
     # get what looks like email from a given text
-    return set(re.findall('[\w\-\_\.]{2,}@[\w\-\_]{2,}\.[a-zA-Z]{2,}', txt))
+    emails = set(re.findall('[\w\-\_\.]{2,}@[\w\-\_]{2,}\.[a-zA-Z]{2,}', txt))
+    valid_emails = set()
+    # remove "emails" that are images
+    for email in emails:
+        _, ext = os.path.splitext(email)
+        if ext == '.jpg' or ext == '.png':
+            continue
+        else:
+            valid_emails.add(email)
+    return valid_emails
 
 
 def get_links(txt, include_incomplete=True):
