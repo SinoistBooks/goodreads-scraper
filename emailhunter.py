@@ -35,7 +35,7 @@ def get_links(txt, include_incomplete=True):
 
 def get_emails_links_by_url(url):
     try:
-        r = requests.get(url)
+        r = requests.get(url, timeout=5)
         # print(f"status code: {r.status_code}")
     except requests.exceptions.ConnectionError:
         print(f'ERROR: Unable to reach url: {url}')
@@ -44,7 +44,7 @@ def get_emails_links_by_url(url):
         # missing http:// so add and try again
         url = f'http://{url}'
         try:
-            r = requests.get(url)
+            r = requests.get(url, timeout=5)
         except Exception as e:
             print(e)
             print(f'ERROR connecting to {url}. Skipping..')
