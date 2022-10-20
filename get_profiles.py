@@ -113,12 +113,46 @@ def load_page(driver, url, wait_time=1):
     f.write(driver.page_source)
     f.close()
 
-def scrape_profiles(driver, reviews_file):
-    '''
-    reviews_file: the csv file output from get_reviews.py
-    '''
+
+def _read_reviews_alt(reviews_file):
+    """Expected format: book_id_title,book_id,book_title,review_url,review_id,date,
+    rating,user_name,user_url,text,num_likes,sort_order,shelves
+    """
     reviews = []
-    title = None
+    with open(reviews_file, 'r') as csvfile:
+        reader = csv.reader(csvfile)
+        i = 0
+        for row in reader:
+            if i == 0:  # first row is the header
+                assert row[0] == 'book_id_title'
+                headers = row
+            else:
+                # convert list to dictionary with headers as keys
+                altreview = {}
+                j = 0
+                for header in headers:
+                    altreview[header] = row[j]
+                    j += 1
+
+                # and convert the alternative format to the preferred format
+                review = {}
+                review['title'] = altreview['book_title']
+                review['authors'] = ''  # not available
+                review['name'] = altreview['user_name']
+                review['user_type'] = ''  # not available
+                review['url'] = 'https://www.goodreads.com' + altreview['user_url']
+                review['rating'] = altreview['rating']
+                review['date'] = altreview['date']
+                review['review'] = altreview['text']
+
+                reviews.append(review)
+            i += 1
+    return reviews
+
+
+def _read_reviews(reviews_file):
+    """Expected format: title,authors,name,user_type,url,rating,date,review"""
+    reviews = []
     with open(reviews_file, 'r') as csvfile:
         reader = csv.reader(csvfile)
         i = 0
@@ -135,6 +169,27 @@ def scrape_profiles(driver, reviews_file):
                     j += 1
                 reviews.append(review)
             i += 1
+    return reviews
+
+
+def scrape_profiles(driver, reviews_file):
+    '''
+    reviews_file: the csv file output from get_reviews.py
+    '''
+    # check which csv file it is
+    f = open(reviews_file, 'r')
+    headers = f.readline()
+    print(headers)
+    f.close()
+    headerlist = headers.split(',')
+
+    reviews = []
+    if headerlist[0] == 'title':
+        reviews = _read_reviews(reviews_file)
+    elif headerlist[0] == 'book_id_title':
+        reviews = _read_reviews_alt(reviews_file)
+    else:
+        raise Exception(f'Reviews file is not in a recognisable format: {reviews_file}')
 
     print(f'\nScraping profiles for book: {reviews[0]["title"]} by {reviews[0]["authors"]}')
 
@@ -239,7 +294,7 @@ def main():
             writer = csv.DictWriter(csvfile, fieldnames=FIELDS)
             writer.writeheader()
             writer.writerows(profiles)
-        print(f'\n🎉 Profiles scraped for f{filename}. Total: {len(profiles)} profiles 🎉')
+        print(f'\n🎉 Profiles scraped for {filename}. Total: {len(profiles)} profiles 🎉')
 
     print(
         f'\n🎉 Success! All profiles scraped. Total: {len(csvfiles)} books and {total_profiles} profiles 🎉'
