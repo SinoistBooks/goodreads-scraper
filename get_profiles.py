@@ -24,8 +24,7 @@ def login(driver):
 
     driver.get(LOGIN_URL)
     driver.find_element(By.XPATH, '//input[@name="email"]').send_keys(email)
-    driver.find_element(
-        By.XPATH, '//input[@name="password"]').send_keys(password)
+    driver.find_element(By.XPATH, '//input[@name="password"]').send_keys(password)
     time.sleep(2)
 
     driver.find_element(By.XPATH, '//input[@id="signInSubmit"]').click()
@@ -114,10 +113,9 @@ def load_page(driver, url, wait_time=1):
     f.write(driver.page_source)
     f.close()
 
-
 def scrape_profiles(driver, reviews_file):
-    ''' 
-    reviews_file: the csv file output from get_reviews.py 
+    '''
+    reviews_file: the csv file output from get_reviews.py
     '''
     reviews = []
     title = None
@@ -138,8 +136,7 @@ def scrape_profiles(driver, reviews_file):
                 reviews.append(review)
             i += 1
 
-    print(
-        f'\nScraping profiles for book: {reviews[0]["title"]} by {reviews[0]["authors"]}')
+    print(f'\nScraping profiles for book: {reviews[0]["title"]} by {reviews[0]["authors"]}')
 
     profiles = []
     for i, review in enumerate(reviews):
@@ -176,10 +173,13 @@ def main():
     start_time = datetime.now()
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--input', type=str, default='stage1_reviews',
-                        help='Input directory containing reviews from get_reviews.py')
-    parser.add_argument('--output', type=str, default='stage2_profiles',
-                        help='Output directory')
+    parser.add_argument(
+        '--input',
+        type=str,
+        default='stage1_reviews',
+        help='Input directory containing reviews from get_reviews.py',
+    )
+    parser.add_argument('--output', type=str, default='stage2_profiles', help='Output directory')
     parser.add_argument('-d', '--dryrun', action='store_true', help='Dry run')
 
     args = parser.parse_args()
@@ -199,8 +199,7 @@ def main():
     print(userAgent)
     options.add_argument(f'user-agent={userAgent}')
 
-    driver = webdriver.Chrome(options=options, service=Service(
-        ChromeDriverManager().install()))
+    driver = webdriver.Chrome(options=options, service=Service(ChromeDriverManager().install()))
     login(driver)  # login to GR (needed to get the profiles)
 
     total_profiles = 0
@@ -213,24 +212,40 @@ def main():
         profiles = scrape_profiles(driver, reviews_file)
         total_profiles += len(profiles)
 
-        outfile = os.path.join(
-            args.output, filename.replace('_reviews', '_profiles'))
+        outfile = os.path.join(args.output, filename.replace('_reviews', '_profiles'))
 
-        FIELDS = ['title', 'authors', 'name', 'user_type', 'url', 'rating', 'date', 'review', 'website',
-                  'twitter', 'details', 'activity', 'about me', 'interests', 'favorite books',
-                  'genre', 'influences', 'birthday', 'member since']
+        FIELDS = [
+            'title',
+            'authors',
+            'name',
+            'user_type',
+            'url',
+            'rating',
+            'date',
+            'review',
+            'website',
+            'twitter',
+            'details',
+            'activity',
+            'about me',
+            'interests',
+            'favorite books',
+            'genre',
+            'influences',
+            'birthday',
+            'member since',
+        ]
         with open(outfile, 'w') as csvfile:
             writer = csv.DictWriter(csvfile, fieldnames=FIELDS)
             writer.writeheader()
             writer.writerows(profiles)
-        print(
-            f'\n🎉 Profiles scraped for f{filename}. Total: {len(profiles)} profiles 🎉')
+        print(f'\n🎉 Profiles scraped for f{filename}. Total: {len(profiles)} profiles 🎉')
 
     print(
-        f'\n🎉 Success! All profiles scraped. Total: {len(csvfiles)} books and {total_profiles} profiles 🎉')
+        f'\n🎉 Success! All profiles scraped. Total: {len(csvfiles)} books and {total_profiles} profiles 🎉'
+    )
     print(f'\nGoodreads profiles have been saved to /{args.output}\n')
-    print(f'Goodreads scraping run time = ⏰ ' +
-          str(datetime.now() - start_time) + ' ⏰')
+    print(f'Goodreads scraping run time = ⏰ ' + str(datetime.now() - start_time) + ' ⏰')
 
     # all good, do not need the temp profile anymore
     if os.path.exists(PROFILE_TMP):
