@@ -31,19 +31,24 @@ def get_profiles_from_csv(filepath):
 
     title = profiles[0]["title"]
     authors = profiles[0]["authors"]
-    print(
-        f'\nScraping contacts for book: {title} by {authors}')
+    print(f'\nScraping contacts for book: {title} by {authors}')
     return profiles, title, authors
 
 
 def scrape_contacts(filepath, ig_loader=None):
-    """ ig_loader: scrape instagram if there's loader instance. default to None/False, 
-            as it often hits rate limit.
+    """ig_loader: scrape instagram if there's loader instance. default to None/False,
+    as it often hits rate limit.
     """
     profiles, title, authors = get_profiles_from_csv(filepath)
 
-    counter = {'instagram': 0, 'youtube': 0, 'facebook': 0,
-               'twitter': 0, 'personal': 0, 'profile_w_email': 0}
+    counter = {
+        'instagram': 0,
+        'youtube': 0,
+        'facebook': 0,
+        'twitter': 0,
+        'personal': 0,
+        'profile_w_email': 0,
+    }
 
     # for each profile, get the websites and emails if any
     count = 0
@@ -95,7 +100,8 @@ def scrape_contacts(filepath, ig_loader=None):
                     if ig_loader:
                         try:
                             insta_profile, insta_emails = emailhunter.get_insta_profile(
-                                site, ig_loader)
+                                site, ig_loader
+                            )
                         except Exception as e:
                             print(e)
                             print(f'ERROR in accessing IG: {site}. Skipping..')
@@ -118,7 +124,8 @@ def scrape_contacts(filepath, ig_loader=None):
             profile['insta_following'] = insta_profile['following']
             print(f"Instagram bio: {profile['insta_biography']}")
             print(
-                f"Instagram stats: {profile['insta_followers']} followers | {profile['insta_following']} following")
+                f"Instagram stats: {profile['insta_followers']} followers | {profile['insta_following']} following"
+            )
 
         profile['websites'] = ','.join(websites)
 
@@ -136,9 +143,9 @@ def scrape_contacts(filepath, ig_loader=None):
     print(f'\nBook: {title} by {authors}')
     print(f'Total profiles with websites: {len(profile_contacts)}')
     print(
-        f"instagram: {counter['instagram']} | youtube: {counter['youtube']} | facebook: {counter['facebook']} | twitter: {counter['twitter']} | personal: {counter['personal']}")
-    print(
-        f"From personal websites, the number of emails acquired: {counter['profile_w_email']}")
+        f"instagram: {counter['instagram']} | youtube: {counter['youtube']} | facebook: {counter['facebook']} | twitter: {counter['twitter']} | personal: {counter['personal']}"
+    )
+    print(f"From personal websites, the number of emails acquired: {counter['profile_w_email']}")
 
     # return a list of profiles with contacts (sites+emails and the number of profile with emails)
     return profile_contacts, counter['profile_w_email']
@@ -148,12 +155,14 @@ def main():
     start_time = datetime.now()
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--input', type=str, default='stage2_profiles',
-                        help='Input directory containing reviews from get_reviews.py')
-    parser.add_argument('--output', type=str, default='stage3_contacts',
-                        help='Output directory')
-    parser.add_argument('--ig', action='store_true',
-                        help='Scrape instagram if set')
+    parser.add_argument(
+        '--input',
+        type=str,
+        default='stage2_profiles',
+        help='Input directory containing reviews from get_reviews.py',
+    )
+    parser.add_argument('--output', type=str, default='stage3_contacts', help='Output directory')
+    parser.add_argument('--ig', action='store_true', help='Scrape instagram if set')
 
     args = parser.parse_args()
 
@@ -167,8 +176,7 @@ def main():
             csvfiles.append(item)
 
     today = datetime.today()
-    outfile = os.path.join(
-        args.output, f'contacts_{today.strftime("%Y%m%d")}.csv')
+    outfile = os.path.join(args.output, f'contacts_{today.strftime("%Y%m%d")}.csv')
 
     ig_loader = None
     # create the instagram loader now so it can be reused for multiple sites
@@ -187,28 +195,47 @@ def main():
     total_profile_w_email = 0
     for filename in csvfiles:
         filepath = os.path.join(args.input, filename)
-        profiles_set, profile_w_email_count = scrape_contacts(
-            filepath, ig_loader)
+        profiles_set, profile_w_email_count = scrape_contacts(filepath, ig_loader)
         total_profile_w_email += profile_w_email_count
         profile_w_contacts.extend(profiles_set)
 
     # 2 additional fields from this process (emails and websites)
-    FIELDS = ['title', 'authors', 'name', 'emails', 'websites', 'insta_biography',
-              'insta_followers', 'insta_following', 'user_type', 'url', 'rating', 'date', 'review',
-              'website', 'twitter', 'details', 'activity', 'about me', 'interests',
-              'favorite books', 'genre', 'influences', 'birthday', 'member since']
+    FIELDS = [
+        'title',
+        'authors',
+        'name',
+        'emails',
+        'websites',
+        'insta_biography',
+        'insta_followers',
+        'insta_following',
+        'user_type',
+        'url',
+        'rating',
+        'date',
+        'review',
+        'website',
+        'twitter',
+        'details',
+        'activity',
+        'about me',
+        'interests',
+        'favorite books',
+        'genre',
+        'influences',
+        'birthday',
+        'member since',
+    ]
     with open(outfile, 'w') as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=FIELDS)
         writer.writeheader()
         writer.writerows(profile_w_contacts)
 
     print(f'\n🎉 Success! Contacts scraped.  🎉')
-    print(
-        f'Total number of profiles with contacts (websites/emails): {len(profile_w_contacts)}')
+    print(f'Total number of profiles with contacts (websites/emails): {len(profile_w_contacts)}')
     print(f'Total number of profiles with email: {total_profile_w_email}')
     print(f'\nContacts have been saved to /{outfile}\n')
-    print(f'Contacts scraping run time = ⏰ ' +
-          str(datetime.now() - start_time) + ' ⏰')
+    print(f'Contacts scraping run time = ⏰ ' + str(datetime.now() - start_time) + ' ⏰')
 
 
 if __name__ == '__main__':
