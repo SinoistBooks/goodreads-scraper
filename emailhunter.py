@@ -17,7 +17,7 @@ def get_domain(url):
 
 def get_emails(txt):
     # get what looks like email from a given text
-    emails = set(re.findall('[\w\-\_\.]{2,}@[\w\-\_]{2,}\.[a-zA-Z]{2,}', txt))
+    emails = set(re.findall('[\w\-\_\.]{2,}@[\w\-\_]{2,}(?:\.[a-zA-Z]{2,})+', txt))
     valid_emails = set()
     # remove "emails" that are images
     for email in emails:
@@ -68,7 +68,18 @@ def get_emails_links_by_url(url):
     txt = html.unescape(r.text)
 
     # find what looks like email
-    emails = get_emails(txt)
+    possible_emails = get_emails(txt)
+
+    # blogger puts a trap, so remove the `blog` prefix and `.biz` suffix
+    emails = []
+    if re.match('.*blogger.com/profile.*', url):
+        for email in possible_emails:
+            m = re.match('blog([\w\-\_\.]{2,}@[\w\-\_]{2,}(?:\.[a-zA-Z]{2,})+).biz', email)
+            if m:
+                emails.append(m.groups()[0])
+    else:
+        emails = possible_emails
+
     if emails:
         return emails, []  # if there's email, no need to find links
 
@@ -77,8 +88,8 @@ def get_emails_links_by_url(url):
 
 
 def hunt_emails(url):
-    """ Hunt emails by a given url.
-    It will try to find emails from the url, and from likely links found on 
+    """Hunt emails by a given url.
+    It will try to find emails from the url, and from likely links found on
     the first url.
     """
     print(f'\nHunt emails on URL: {url}')
@@ -115,7 +126,7 @@ def hunt_emails(url):
 
 
 def get_insta_profile(url, loader):
-    """ 
+    """
     loader: instance of Instaloader
 
     Return: insta profile (dict) and emails (list)
