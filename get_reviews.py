@@ -22,10 +22,9 @@ def _go_to_all_reviews(driver):
     # scroll to at the end of the reviews to get the 'see all reviews' button
     SCROLL_PAUSE_TIME = 0.5
     i = 0
-    while (True):
+    while True:
         # Scroll down to bottom
-        driver.execute_script(
-            "window.scrollTo(0, document.body.scrollHeight);")
+        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
 
         # Scroll a bit up for the All reviews button
         height = driver.execute_script("return document.body.scrollHeight")
@@ -41,7 +40,8 @@ def _go_to_all_reviews(driver):
 
         try:
             more_reviews_button = driver.find_element(
-                By.XPATH, '//div[@class="lazyload-wrapper "]/div[@class="ReviewsList"]/div[4]/a')
+                By.XPATH, '//div[@class="lazyload-wrapper "]/div[@class="ReviewsList"]/div[4]/a'
+            )
         except NoSuchElementException:
             time.sleep(1.5)
             continue  # try again
@@ -52,8 +52,7 @@ def _go_to_all_reviews(driver):
             except ElementClickInterceptedException:
                 time.sleep(1.5)  # wait, scroll up and try again
                 try:
-                    driver.execute_script(
-                        f"window.scrollTo(0, {height - 1000});")
+                    driver.execute_script(f"window.scrollTo(0, {height - 1000});")
                     more_reviews_button.click()
                 except Exception as e:
                     print(e)
@@ -84,7 +83,9 @@ def switch_reviews_mode(driver, url):
         if _go_to_all_reviews(driver):
             return True  # managed to go to all reviews page
 
-        print(f'🚨 Could not go to all reviews page - likely a pop-up or old layout🚨\n🔄 Refreshing Goodreads site..')
+        print(
+            f'🚨 Could not go to all reviews page - likely a pop-up or old layout🚨\n🔄 Refreshing Goodreads site..'
+        )
 
         # restart driver with the hope of getting a new layout
         driver = start_driver()
@@ -102,8 +103,7 @@ def load_reviews(driver, pages):
     driver.execute_script(f"window.scrollTo(0, 400);")
     time.sleep(1)
     try:
-        driver.find_element(
-            By.XPATH, '//span[@data-testid="loadPrev"]').click()
+        driver.find_element(By.XPATH, '//span[@data-testid="loadPrev"]').click()
         print('Show previous reviews..')
         time.sleep(2)
     except Exception as e:
@@ -130,8 +130,7 @@ def load_reviews(driver, pages):
             time.sleep(SCROLL_PAUSE_TIME)
 
             try:
-                btn = driver.find_element(
-                    By.XPATH, '//span[@data-testid="loadMore"]')
+                btn = driver.find_element(By.XPATH, '//span[@data-testid="loadMore"]')
             except NoSuchElementException:
                 print("Seems to have got all reviews.")
                 break  # finish. no more reviews.
@@ -213,15 +212,18 @@ def scrape_reviews(filename):
         review = get_review(node)
         rating, date = get_date_rating(node)
 
-        reviews.append({'title': title,
-                        'authors': authors,
-                        'name': name,
-                        'user_type': utype,
-                        'url': url,
-                        'rating': rating,
-                        'date': date,
-                        'review': review,
-                        })
+        reviews.append(
+            {
+                'title': title,
+                'authors': authors,
+                'name': name,
+                'user_type': utype,
+                'url': url,
+                'rating': rating,
+                'date': date,
+                'review': review,
+            }
+        )
 
     print(f'Total reviews: {len(reviews)}')
 
@@ -238,6 +240,7 @@ def start_driver(browser='chrome'):
     # Get an option to work with Google Colab
     elif browser.lower() == "colab":
         from selenium.webdriver.chrome.options import Options
+
         chrome_options = Options()
         chrome_options.add_argument("--headless")
         chrome_options.add_argument('--no-sandbox')
@@ -254,14 +257,17 @@ def main():
     script_name = os.path.basename(__file__)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--pages', default=100,
-                        help="the number of times of the reviews to load", type=int)
-    parser.add_argument('--books', type=str, help="Text file containing gooreads book urls",
-                        default="goodreads_books.txt")
-    parser.add_argument('--output', type=str,
-                        help="Output directory", default="stage1_reviews")
-    parser.add_argument('--browser', type=str,
-                        help="Browser to use", default="chrome")
+    parser.add_argument(
+        '--pages', default=100, help="the number of times of the reviews to load", type=int
+    )
+    parser.add_argument(
+        '--books',
+        type=str,
+        help="Text file containing gooreads book urls",
+        default="goodreads_books.txt",
+    )
+    parser.add_argument('--output', type=str, help="Output directory", default="stage1_reviews")
+    parser.add_argument('--browser', type=str, help="Browser to use", default="chrome")
 
     args = parser.parse_args()
 
@@ -269,12 +275,11 @@ def main():
     if not os.path.exists(args.output):
         os.mkdir(args.output)
 
-    book_urls = [line.strip()
-                 for line in open(args.books, 'r') if line.strip()]
+    book_urls = [line.strip() for line in open(args.books, 'r') if line.strip()]
 
     for i, url in enumerate(book_urls):
         try:
-            # get a new driver for every book
+            # get a new driver for every book
             driver = start_driver(args.browser)
 
             if not switch_reviews_mode(driver, url):
@@ -298,20 +303,29 @@ def main():
             try:
                 title, reviews = scrape_reviews(filename)
             except Exception:
-                print(
-                    f'Error parsing the HTML {filename}. Skipping this book..')
+                print(f'Error parsing the HTML {filename}. Skipping this book..')
                 continue
 
             if len(reviews) == 0:
                 print(f"No review found for {title}.")
             else:
-                # write the reviews to csv
-                book_filename = title.replace(' ', '_').lower()
-                reviews_file = os.path.join(
-                    args.output, f"{book_filename}_reviews.csv")
+                # clean filename
+                book_filename = (
+                    title.strip().replace(' ', '_').replace('/', '').replace('!', '').lower()
+                )
+                reviews_file = os.path.join(args.output, f"{book_filename}_reviews.csv")
 
-                FIELDS = ['title', 'authors', 'name', 'user_type',
-                          'url', 'rating', 'date', 'review']
+                # write the reviews to csv
+                FIELDS = [
+                    'title',
+                    'authors',
+                    'name',
+                    'user_type',
+                    'url',
+                    'rating',
+                    'date',
+                    'review',
+                ]
                 with open(reviews_file, 'w') as csvfile:
                     writer = csv.DictWriter(csvfile, fieldnames=FIELDS)
                     writer.writeheader()
@@ -330,8 +344,7 @@ def main():
                 driver.quit()
 
     print(f'🎉 Success! All book reviews scraped. 🎉\n\n')
-    print(f'Goodreads scraping run time = ⏰ ' +
-          str(datetime.now() - start_time) + ' ⏰')
+    print(f'Goodreads scraping run time = ⏰ ' + str(datetime.now() - start_time) + ' ⏰')
 
 
 if __name__ == '__main__':
