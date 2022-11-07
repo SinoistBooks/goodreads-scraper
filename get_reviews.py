@@ -311,7 +311,12 @@ def main():
             else:
                 # clean filename
                 book_filename = (
-                    title.strip().replace(' ', '_').replace('/', '').replace('!', '').lower()
+                    title.strip()
+                    .replace(' ', '_')
+                    .replace('/', '')
+                    .replace('!', '')
+                    .replace(':', '')
+                    .lower()
                 )
                 reviews_file = os.path.join(args.output, f"{book_filename}_reviews.csv")
 
