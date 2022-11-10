@@ -164,7 +164,15 @@ def add_country(df):
             print(f'Detail: {detail} | country: {country}...', end='\r')
         else:
             # if not, do a country lookup
-            potentials = pycountry.countries.search_fuzzy(country)
+            try:
+                potentials = pycountry.countries.search_fuzzy(country)
+            except Exception as e:
+                print(e)
+                print(f'Failed lookup for country: [country].')
+                countries.append('')
+                usstates.append('')
+                continue
+
             name = potentials[0].name
             parts = name.split(',')  # take the short name (the first part)
             if len(parts) >= 2:
