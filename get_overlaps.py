@@ -25,7 +25,7 @@ def get_overlaps(csvfiles1, csvfiles2, set1, set2):
     for f in csvfiles2:
         df = pd.read_csv(f)
         row, col = df.shape
-        print(f'set2[:10]: {i+1}) {f} {row, col}', end='\r')
+        print(f'{set2[:10]}: {i+1}) {f} {row, col}', end='\r')
         i += 1
         df2 = pd.concat([df2, df], ignore_index=True)
 
