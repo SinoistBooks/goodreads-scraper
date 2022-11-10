@@ -19,8 +19,6 @@ def get_overlaps(csvfiles1, csvfiles2, set1, set2):
         print(f'{set1[:10]}: {i+1}) {f} {row, col}', end='\r')
         i += 1
         df1 = pd.concat([df1, df], ignore_index=True)
-        # if i >= 5:
-        #     break
 
     i = 0
     df2 = pd.DataFrame()
@@ -30,8 +28,6 @@ def get_overlaps(csvfiles1, csvfiles2, set1, set2):
         print(f'set2[:10]: {i+1}) {f} {row, col}', end='\r')
         i += 1
         df2 = pd.concat([df2, df], ignore_index=True)
-        # if i >= 5:
-        #     break
 
     print()
     row, col = df1.shape
