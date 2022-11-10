@@ -5,14 +5,16 @@ name = "pypi"
 
 [packages]
 beautifulsoup4 = "*"
-selenium = "*"
-lxml = "*"
-geckodriver-autoinstaller = "*"
-webdriver-manager = "*"
-pandas = "*"
-regex = "*"
 credentials = "*"
 fake-useragent = "*"
+geckodriver-autoinstaller = "*"
+lxml = "*"
+pandas = "*"
+pycountry = "*"
+selenium = "*"
+spacy = "*"
+spacy_fastlang = "*"
+webdriver-manager = "*"
 
 [dev-packages]
 

@@ -1,9 +1,11 @@
 beautifulsoup4
-selenium
-lxml
-geckodriver-autoinstaller
-webdriver_manager
-pandas
-regex
 credentials
 fake-useragent
+geckodriver-autoinstaller
+lxml
+pandas
+pycountry
+selenium
+spacy
+spacy_fastlang
+webdriver_manager
