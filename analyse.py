@@ -35,7 +35,7 @@ def add_lang(df):
 
         languages.append(lang)
         i += 1
-        print(f'{i}/{total}) [{lang}]: {review[:100]}')
+        print(f'{i}/{total}) [{lang}]: {review[:100]}', end='\r')
 
     # df['lang'] = languages # this adds to the end
     df.insert(8, 'lang', languages)
