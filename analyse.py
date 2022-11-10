@@ -168,7 +168,7 @@ def add_country(df):
                 potentials = pycountry.countries.search_fuzzy(country)
             except Exception as e:
                 print(e)
-                print(f'Failed lookup for country: [country].')
+                print(f'Failed lookup for country: [{country}].')
                 countries.append('')
                 usstates.append('')
                 continue
