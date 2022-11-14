@@ -11,8 +11,6 @@ from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
 
 
 REVIEWS_TEMP_FILE = "reviews_tmp.html"
@@ -254,7 +252,6 @@ def start_driver(browser='chrome'):
 def main():
 
     start_time = datetime.now()
-    script_name = os.path.basename(__file__)
 
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -312,10 +309,11 @@ def main():
                 # clean filename
                 book_filename = (
                     title.strip()
-                    .replace(' ', '_')
                     .replace('/', '')
                     .replace('!', '')
                     .replace(':', '')
+                    .replace('.', '')
+                    .replace(' ', '_')
                     .lower()
                 )
                 reviews_file = os.path.join(args.output, f"{book_filename}_reviews.csv")
