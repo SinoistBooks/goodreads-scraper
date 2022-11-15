@@ -191,7 +191,7 @@ def analyse(csvfile, outputdir):
     df = pd.read_csv(csvfile)
     print(f'Row, col: {df.shape}')
 
-    # df = add_lang(df)
+    df = add_lang(df)
     df = add_age(df)
     df = add_country(df)
 
