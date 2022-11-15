@@ -151,8 +151,6 @@ def add_country(df):
         elif 'Republic of' in country:
             country = f'{parts[-1]} {parts[-2]}'
 
-        usstates.append(us_state)
-
         # remove the 'The' suffix
         m = re.match('The ([\w\s]+)', country)
         if m:
@@ -182,6 +180,7 @@ def add_country(df):
             countries.append(actual_country)
             print(f'Detail: {detail} | country: {actual_country}...', end='\r')
 
+    usstates.append(us_state)
     df.insert(14, 'country', countries)
     df.insert(15, 'US_state', usstates)
 
