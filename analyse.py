@@ -107,7 +107,6 @@ def add_country(df):
     countries = []
     usstates = []
 
-    i = 0
     for detail in details:
         if pd.isna(detail) or "hasn't added" in detail:
             countries.append('')
@@ -156,6 +155,8 @@ def add_country(df):
         if m:
             country = m.groups()[0]
 
+        usstates.append(us_state)
+
         pycountries = sorted([c.name for c in pycountry.countries])
         if country in pycountries:
             countries.append(country)
@@ -168,7 +169,6 @@ def add_country(df):
                 print(e)
                 print(f'Failed lookup for country: [{country}].')
                 countries.append('')
-                usstates.append('')
                 continue
 
             name = potentials[0].name
@@ -180,7 +180,6 @@ def add_country(df):
             countries.append(actual_country)
             print(f'Detail: {detail} | country: {actual_country}...', end='\r')
 
-    usstates.append(us_state)
     df.insert(14, 'country', countries)
     df.insert(15, 'US_state', usstates)
 
@@ -192,7 +191,7 @@ def analyse(csvfile, outputdir):
     df = pd.read_csv(csvfile)
     print(f'Row, col: {df.shape}')
 
-    df = add_lang(df)
+    # df = add_lang(df)
     df = add_age(df)
     df = add_country(df)
 
